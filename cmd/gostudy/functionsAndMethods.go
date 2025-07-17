@@ -425,3 +425,71 @@ func fixedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+//===============================================
+// Rule 51 Check error value inaccurately
+//===============================================
+
+var sentinelError = errors.New("sentinel error")
+
+// Use wrapped error.
+func query_w(sentinel bool) error {
+	if sentinel {
+		return fmt.Errorf("sentinel error: %w", sentinelError)
+	}
+	return nil
+}
+
+// Use raw error.
+func query(sentinel bool) error {
+	if sentinel {
+		return sentinelError
+	}
+	return nil
+}
+
+// Use == to check if the error is a specific error with wrapped error.
+func checkErrorValue() {
+	err := query_w(true)
+
+	if err != nil {
+		if err == sentinelError {
+			fmt.Println("sentinel error")
+		} else {
+			fmt.Println("unknown error")
+		}
+	}
+
+}
+
+// Use == to check if the error is a specific error with raw error.
+func checkErrorValue2() {
+	err := query(true)
+
+	if err != nil {
+		if err == sentinelError {
+			fmt.Println("sentinel error")
+		} else {
+			fmt.Println("unknown error")
+		}
+	}
+}
+
+// Use errors.Is to check if the error is a specific error with wrapped error.
+func checkErrorValue3() {
+	err := query_w(true)
+
+	if err != nil {
+		if errors.Is(err, sentinelError) {
+			fmt.Println("sentinel error")
+		} else {
+			fmt.Println("unknown error")
+		}
+	}
+}
+
+// ===============================================
+// Rule 52. 에러를 두 번 처리하지 마라
+// ===============================================
+
+
