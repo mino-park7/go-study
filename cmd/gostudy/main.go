@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // This controls the maxprocs environment variable in container runtimes.
 // see https://martin.baillie.id/wrote/gotchas-in-the-go-network-packages-defaults/#bonus-gomaxprocs-containers-and-the-cfs
 
@@ -24,9 +26,15 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
-	checkErrorValue()
-	checkErrorValue2()
-	checkErrorValue3()
+	if _, err := GetRoute(10, 10, 10, 10); err != nil {
+		fmt.Println(err)
+	}
+	if _, err := GetRoute(-100, 10, 10, 10); err != nil {
+		fmt.Println(err)
+	}
+	if _, err := GetRoute(10, -100, 10, 190); err != nil {
+		fmt.Println(err)
+	}
 }
 
 // func run(logger *slog.Logger) error {

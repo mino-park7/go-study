@@ -492,4 +492,34 @@ func checkErrorValue3() {
 // Rule 52. 에러를 두 번 처리하지 마라
 // ===============================================
 
+type Route struct {
+	Distance float32
+	Duration float32
+}
 
+func validateCoordinates(lat, lng float32) error {
+	if lat < -90 || lat > 90 {
+		return fmt.Errorf("invalid latitude: %f", lat)
+	}
+	if lng < -180 || lng > 180 {
+		return fmt.Errorf("invalid longitude: %f", lng)
+	}
+	return nil
+}
+
+func GetRoute(srcLat, srcLng, dstLat, dstLng float32) (Route, error) {
+	err := validateCoordinates(srcLat, srcLng)
+	if err != nil {
+		return Route{}, fmt.Errorf("failed to validate source coordinates: %w", err)
+	}
+
+	err = validateCoordinates(dstLat, dstLng)
+	if err != nil {
+		return Route{}, fmt.Errorf("failed to validate destination coordinates: %w", err)
+	}
+
+	return Route{
+		Distance: 10,
+		Duration: 10,
+	}, nil
+}
