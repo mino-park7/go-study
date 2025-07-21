@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 //===============================================
@@ -618,4 +619,51 @@ func parallelMergeSortV2(s []int) {
 		merge(s, middle)
 	}
 
+}
+
+// ===============================================
+// Rule 59. 워크로드 타입에 따른 동시성 영향을 정확하게 이해하라
+// ===============================================
+
+func read(r io.Reader, n int) (int, error) {
+	var count int64
+	wg := sync.WaitGroup{}
+
+
+	ch := make(chan []byte, n)
+	wg.Add(n)
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			for b := range ch {
+				v, _ := task(b)
+				atomic.AddInt64(&count, int64(v))
+			}
+		}()
+	}
+
+	for {
+		b := make([]byte, 1024)
+		_, err := r.Read(b)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return 0, err
+		}
+		ch <- b
+	}
+
+	close(ch)
+	wg.Wait()
+
+	return int(count), nil
+}
+
+func task(b []byte) (int, error) {
+	result := 0
+	for _, value := range b {
+		result += int(value)
+	}
+	return result, nil
 }

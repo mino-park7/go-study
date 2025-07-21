@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"sync"
-	"sync/atomic"
+	"strings"
+
+	// "sync"
+	// "sync/atomic"
 	"time"
 )
 
@@ -42,110 +44,121 @@ func main() {
 	// #58 경쟁 문제에 대해 완전히 이해하라
 
 	// data race
-	var wg sync.WaitGroup
+	// 	var wg sync.WaitGroup
 
-	i := 0
+	// 	i := 0
 
-	wg.Add(2)
+	// 	wg.Add(2)
 
-	go func() {
-		defer wg.Done()
-		i++
-	}()
+	// 	go func() {
+	// 		defer wg.Done()
+	// 		i++
+	// 	}()
 
-	go func() {
-		defer wg.Done()
-		i++
-	}()
+	// 	go func() {
+	// 		defer wg.Done()
+	// 		i++
+	// 	}()
 
-	wg.Wait()
-	fmt.Println(i)
+	// 	wg.Wait()
+	// 	fmt.Println(i)
 
-	// atomic
-	var i2 int64
+	// 	// atomic
+	// 	var i2 int64
 
-	var wg2 sync.WaitGroup
+	// 	var wg2 sync.WaitGroup
 
-	wg2.Add(2)
+	// 	wg2.Add(2)
 
-	go func() {
-		defer wg2.Done()
-		atomic.AddInt64(&i2, 1)
-	}()
+	// 	go func() {
+	// 		defer wg2.Done()
+	// 		atomic.AddInt64(&i2, 1)
+	// 	}()
 
-	go func() {
-		defer wg2.Done()
-		atomic.AddInt64(&i2, 1)
-	}()
+	// 	go func() {
+	// 		defer wg2.Done()
+	// 		atomic.AddInt64(&i2, 1)
+	// 	}()
 
-	wg2.Wait()
-	fmt.Println(i2)
+	// 	wg2.Wait()
+	// 	fmt.Println(i2)
 
-	// mutex
-	i3 := 0
-	mutex := sync.Mutex{}
+	// 	// mutex
+	// 	i3 := 0
+	// 	mutex := sync.Mutex{}
 
-	w3 := sync.WaitGroup{}
+	// 	w3 := sync.WaitGroup{}
 
-	w3.Add(2)
+	// 	w3.Add(2)
 
-	go func() {
-		defer w3.Done()
-		mutex.Lock()
-		i3++
-		mutex.Unlock()
-	}()
+	// 	go func() {
+	// 		defer w3.Done()
+	// 		mutex.Lock()
+	// 		i3++
+	// 		mutex.Unlock()
+	// 	}()
 
-	go func() {
-		defer w3.Done()
-		mutex.Lock()
-		i3++
-		mutex.Unlock()
-	}()
+	// 	go func() {
+	// 		defer w3.Done()
+	// 		mutex.Lock()
+	// 		i3++
+	// 		mutex.Unlock()
+	// 	}()
 
-	w3.Wait()
-	fmt.Println(i3)
+	// 	w3.Wait()
+	// 	fmt.Println(i3)
 
-	// channel
-	i4 := 0
-	ch := make(chan int)
+	// 	// channel
+	// 	i4 := 0
+	// 	ch := make(chan int)
 
-	wg4 := sync.WaitGroup{}
-	wg4.Add(2)
-	go func() {
-		defer wg4.Done()
-		ch <- 1
-	}()
+	// 	wg4 := sync.WaitGroup{}
+	// 	wg4.Add(2)
+	// 	go func() {
+	// 		defer wg4.Done()
+	// 		ch <- 1
+	// 	}()
 
-	go func() {
-		defer wg4.Done()
-		ch <- 1
-	}()
+	// 	go func() {
+	// 		defer wg4.Done()
+	// 		ch <- 1
+	// 	}()
 
-	i4 += <-ch
-	i4 += <-ch
+	// 	i4 += <-ch
+	// 	i4 += <-ch
 
-	wg4.Wait()
-	fmt.Println(i4)
+	// 	wg4.Wait()
+	// 	fmt.Println(i4)
 
-	// race condition
+	// 	// race condition
 
-	i5 := 0
-	wg5 := sync.WaitGroup{}
-	wg5.Add(2)
+	// 	i5 := 0
+	// 	wg5 := sync.WaitGroup{}
+	// 	wg5.Add(2)
 
-	go func() {
-		defer wg5.Done()
-		i5 = 1
-	}()
+	// 	go func() {
+	// 		defer wg5.Done()
+	// 		i5 = 1
+	// 	}()
 
-	go func() {
-		defer wg5.Done()
-		i5 = 2
-	}()
+	// 	go func() {
+	// 		defer wg5.Done()
+	// 		i5 = 2
+	// 	}()
 
-	wg5.Wait()
-	fmt.Println(i5)
+	// 	wg5.Wait()
+	// 	fmt.Println(i5)
+	// }
+
+	// #59 워크로드 타입에 따른 동시성 영향을 정확하게 이해하라
+
+	num_procs := []int{1, 2, 4, 8, 16, 32, 64, 128}
+	for _, num_proc := range num_procs {
+		r := strings.NewReader(strings.Repeat("\x00", 1024*1024*10))
+		now := time.Now()
+		count, _ := read(r, num_proc)
+		fmt.Println(num_proc, count, time.Since(now))
+	}
 }
 
 // func run(logger *slog.Logger) error {
