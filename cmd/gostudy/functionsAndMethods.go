@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 //===============================================
@@ -629,7 +630,6 @@ func read(r io.Reader, n int) (int, error) {
 	var count int64
 	wg := sync.WaitGroup{}
 
-
 	ch := make(chan []byte, n)
 	wg.Add(n)
 	for i := 0; i < n; i++ {
@@ -666,4 +666,33 @@ func task(b []byte) (int, error) {
 		result += int(value)
 	}
 	return result, nil
+}
+
+// ===============================================
+// Rule 60. 고 컨텍스트 개념을 정확하게 이해하라
+// ===============================================
+
+type flight struct {
+	ID       string
+	Position Position
+}
+
+type Position struct {
+	Lat float64
+	Lng float64
+}
+
+type publisher interface {
+	Publish(ctx context.Context, position Position) error
+}
+
+type publishHandler struct {
+	pub publisher
+}
+
+func (h publishHandler) publishPosition(position Position) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	return h.pub.Publish(ctx, position)
 }
