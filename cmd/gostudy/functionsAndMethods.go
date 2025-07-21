@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 )
 
 //===============================================
@@ -522,4 +523,99 @@ func GetRoute(srcLat, srcLng, dstLat, dstLng float32) (Route, error) {
 		Distance: 10,
 		Duration: 10,
 	}, nil
+}
+
+// ===============================================
+// Rule 56. 동시성이 무조건 빠르다고 착각하지 마라
+// ===============================================
+
+func sequentialMergeSort(s []int) {
+	if len(s) <= 1 {
+		return
+	}
+
+	middle := len(s) / 2
+	sequentialMergeSort(s[:middle])
+	sequentialMergeSort(s[middle:])
+
+	merge(s, middle)
+}
+
+func merge(s []int, middle int) {
+
+	temp := make([]int, len(s))
+	copy(temp, s)
+
+	i := 0
+	j := middle
+
+	for k := 0; k < len(s); k++ {
+		if i >= middle {
+			s[k] = temp[j]
+			j++
+		} else if j >= len(s) {
+			s[k] = temp[i]
+			i++
+		} else if temp[i] < temp[j] {
+			s[k] = temp[i]
+			i++
+		} else {
+			s[k] = temp[j]
+			j++
+		}
+	}
+}
+
+func parallelMergeSortV1(s []int) {
+	if len(s) <= 1 {
+		return
+	}
+
+	middle := len(s) / 2
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		parallelMergeSortV1(s[:middle])
+	}()
+
+	go func() {
+		defer wg.Done()
+		parallelMergeSortV1(s[middle:])
+	}()
+
+	wg.Wait()
+	merge(s, middle)
+}
+
+const max = 4096
+
+func parallelMergeSortV2(s []int) {
+	if len(s) <= 1 {
+		return
+	}
+
+	if len(s) <= max {
+		sequentialMergeSort(s)
+	} else {
+		middle := len(s) / 2
+		var wg sync.WaitGroup
+		wg.Add(2)
+
+		go func() {
+			defer wg.Done()
+			parallelMergeSortV2(s[:middle])
+		}()
+
+		go func() {
+			defer wg.Done()
+			parallelMergeSortV2(s[middle:])
+		}()
+
+		wg.Wait()
+		merge(s, middle)
+	}
+
 }
